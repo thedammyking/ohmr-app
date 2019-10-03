@@ -1,0 +1,1 @@
+export const ohmrServicesBaseUrl = "https://ohmr-staging.herokuapp.com"

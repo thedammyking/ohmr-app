@@ -1,18 +1,64 @@
-import * as WebBrowser from 'expo-web-browser';
-import React from 'react';
+import React, { useState } from 'react';
+import { StyleSheet, AsyncStorage } from 'react-native';
 import {
-	Image,
-	Platform,
-	ScrollView,
-	StyleSheet,
+	Container,
+	Content,
+	Input,
+	Item,
+	Form,
+	Button,
 	Text,
-	TouchableOpacity,
-	View
-} from 'react-native';
+	Toast,
+	Spinner
+} from 'native-base';
+import { Auth, setToken } from '../constants';
 
-import { Container, Content, Input, Item, Form, Button } from 'native-base';
+export default function LoginScreen(props) {
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [loading, setLoading] = useState(false);
 
-export default function LoginScreen() {
+	const _handleSubmit = async () => {
+		if (loading) return;
+		setLoading(true);
+		const data = await Auth.login({ email, password })
+			.then(({ response }) => response.data)
+			.catch(({ response: { data } }) => {
+				if (data !== undefined && data.response.message) {
+					Toast.show({
+						text: data.response.message,
+						buttonText: 'Okay',
+						position: 'top',
+						type: 'danger'
+					});
+					setLoading(false);
+					return;
+				}
+				Toast.show({
+					text: 'Something went wrong, please try again',
+					buttonText: 'Okay',
+					position: 'top',
+					type: 'danger'
+				});
+				setLoading(false);
+				return;
+			});
+		if (data && data.token) {
+			await AsyncStorage.setItem('token', data.token);
+			setLoading(false);
+			setToken(data.token);
+			props.navigation.navigate('Ticket');
+			return;
+		}
+		Toast.show({
+			text: 'Something went wrong, please try again',
+			buttonText: 'Okay',
+			position: 'top',
+			type: 'danger'
+		});
+		setLoading(false);
+		return;
+	};
 	return (
 		<Container style={styles.container}>
 			<Content style={styles.contentContainer}>
@@ -24,6 +70,8 @@ export default function LoginScreen() {
 							placeholderTextColor='#fff'
 							returnKeyType='next'
 							keyboardType='email-address'
+							value={email}
+							onChangeText={text => setEmail(text)}
 						/>
 					</Item>
 					<Item style={styles.inputItem} regular>
@@ -33,10 +81,18 @@ export default function LoginScreen() {
 							placeholder='Password'
 							secureTextEntry
 							returnKeyType='send'
+							value={password}
+							onChangeText={text => setPassword(text)}
 						/>
 					</Item>
-					<Button style={styles.button}>
-						<Text style={styles.buttonText}>LOGIN</Text>
+					<Button
+						onPress={() => _handleSubmit()}
+						style={styles.button}>
+						{loading ? (
+							<Spinner color='#2980b9' />
+						) : (
+							<Text style={styles.buttonText}>LOGIN</Text>
+						)}
 					</Button>
 				</Form>
 			</Content>
