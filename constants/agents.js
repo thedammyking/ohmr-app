@@ -36,14 +36,14 @@ export const Auth = {
 export const Tickets = {
 	generate: (body = {}) =>
 		ohmrServicesPostRequest(
-			'event/5d95f4d83a7004001771cbb1/ticket',
+			'event/5d970744c5e2e10017b7c427/ticket',
 			body
 		).then(({ data, status }) => ({
 			...data,
 			status
 		})),
 	getAll: params =>
-		ohmrServicesGetRequest('event/5d95f4d83a7004001771cbb1/ticket').then(
+		ohmrServicesGetRequest('event/5d970744c5e2e10017b7c427/ticket').then(
 			({ data, status }) => ({
 				...data,
 				status
