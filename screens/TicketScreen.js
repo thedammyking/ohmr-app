@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, AsyncStorage } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, AsyncStorage, RefreshControl } from 'react-native';
 import {
 	Container,
 	Content,
@@ -23,6 +23,8 @@ import moment from 'moment';
 export default function TicketScreen(props) {
 	const [loading, setLoading] = useState(false);
 	const [tickets, setTickets] = useState([]);
+	const [refreshing, setRefreshing] = useState(false);
+	const [fabActive, setFabActive] = useState(false);
 
 	useEffect(() => {
 		_fetchTictets();
@@ -75,6 +77,12 @@ export default function TicketScreen(props) {
 		return;
 	};
 
+	const _onRefresh = useCallback(() => {
+		setRefreshing(true);
+
+		_fetchTictets();
+	}, [refreshing]);
+
 	const _fetchTictets = async () => {
 		setLoading(true);
 		const tickets = await Tickets.getAll()
@@ -94,17 +102,11 @@ export default function TicketScreen(props) {
 				return;
 			});
 		if (tickets && !!tickets.length) {
-			setTickets(tickets);
+			setTickets(tickets.reverse());
 			setLoading(false);
+			setRefreshing(false);
 			return;
 		}
-		Toast.show({
-			text: 'Something went wrong',
-			buttonText: 'Okay',
-			position: 'top',
-			type: 'danger'
-		});
-		setLoading(false);
 		return;
 	};
 	return (
@@ -120,7 +122,15 @@ export default function TicketScreen(props) {
 				</Right>
 			</Header>
 			<View style={{ flex: 1 }}>
-				<Content style={styles.containerContent}>
+				<Content
+					style={styles.containerContent}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={_onRefresh}
+							colors={['#2980b9']}
+						/>
+					}>
 					{!loading &&
 						!!tickets.length &&
 						tickets.map(item => (
@@ -129,7 +139,9 @@ export default function TicketScreen(props) {
 									<Text style={styles.ticketNumber}>
 										{item.ticketNumber}
 									</Text>
-									<Badge success>
+									<Badge
+										success={item.status === 'unused'}
+										danger={item.status === 'used'}>
 										<Text style={styles.status}>
 											{item.status}
 										</Text>
@@ -156,10 +168,28 @@ export default function TicketScreen(props) {
 					)}
 				</Content>
 				<Fab
-					onPress={() => _handleGenerateTicket()}
+					active={fabActive}
+					direction='up'
+					onPress={() => setFabActive(!fabActive)}
 					style={styles.fab}
 					position='bottomRight'>
-					<Icon name='add' />
+					<Icon type='AntDesign' name='menuunfold' />
+					<Button
+						onPress={() => {
+							setFabActive(!fabActive);
+							return _handleGenerateTicket();
+						}}
+						style={styles.fab}>
+						<Icon name='add' />
+					</Button>
+					<Button
+						onPress={() => {
+							setFabActive(!fabActive);
+							return props.navigation.navigate('VerifyTicket');
+						}}
+						style={styles.fab}>
+						<Icon type='Octicons' name='unverified' />
+					</Button>
 				</Fab>
 			</View>
 		</Container>
@@ -176,7 +206,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#fff'
 	},
 	containerContent: {
-		padding: 15
+		margin: 15
 	},
 	header: {
 		paddingTop: 30,

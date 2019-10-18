@@ -4,6 +4,7 @@ import { createStackNavigator } from 'react-navigation';
 
 import LoginScreen from '../screens/LoginScreen';
 import TicketScreen from '../screens/TicketScreen';
+import VerifyTicketScreen from '../screens/VerifyTicketScreen';
 import AppLoadingScreen from '../screens/AppLoadingScreen';
 
 const config = Platform.select({
@@ -24,7 +25,8 @@ AuthStack.path = 'auth';
 
 export const AppStack = createStackNavigator(
 	{
-		Ticket: TicketScreen
+		Ticket: TicketScreen,
+		VerifyTicket: VerifyTicketScreen
 	},
 	config
 );

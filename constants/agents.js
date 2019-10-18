@@ -42,6 +42,14 @@ export const Tickets = {
 			...data,
 			status
 		})),
+	verify: (body = {}) =>
+		ohmrServicesPostRequest(
+			'event/5d970744c5e2e10017b7c427/ticket/verify',
+			body
+		).then(({ data, status }) => ({
+			...data,
+			status
+		})),
 	getAll: params =>
 		ohmrServicesGetRequest('event/5d970744c5e2e10017b7c427/ticket').then(
 			({ data, status }) => ({
